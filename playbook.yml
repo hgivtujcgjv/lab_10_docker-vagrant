@@ -1,0 +1,41 @@
+- name: Update packages and prepare VM-2 for Docker containers
+  hosts: managed_hosts
+  become: true
+
+  tasks:
+    - name: Update packages
+      apt:
+        update_cache: yes
+        upgrade: safe
+
+    - name: Install Docker dependencies
+      apt:
+        name: ['apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common']
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Install Docker Compose
+      pip:
+        name: docker-compose
+        state: present
+
+    - name: Copy Docker files and docker-compose.yml
+      copy:
+        src: /home/lab8_dock_c
+        dest: /home/vagrant/docker
+
+    - name: Start Docker containers
+      command: docker-compose -f /home/vagrant/docker/docker-compose.yml up -d
